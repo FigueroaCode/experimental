@@ -74,7 +74,7 @@ spec:
           path: /etc/nvidia
       initContainers:
       - image: "us.gcr.io/gshuoy-dev/cos-gpu-installer:500"
-        imagePullPolicy: Never
+        imagePullPolicy: Always
         name: nvidia-driver-installer
         resources:
           requests:
