@@ -73,7 +73,7 @@ spec:
         hostPath:
           path: /etc/nvidia
       initContainers:
-      - image: "cos-nvidia-installer:fixed"
+      - image: "us.gcr.io/gshuoy-dev/cos-gpu-installer:500"
         imagePullPolicy: Never
         name: nvidia-driver-installer
         resources:
@@ -117,8 +117,7 @@ spec:
             exit 0
           else
             echo "No GPU driver module detected, installing now"
-            /cos-gpu-installer install --version=latest --no-verify || exit 1
-            sbin/modprobe -d /root drm_kms_helper; /sbin/insmod /usr/local/nvidia/drivers/nvidia.ko; sbin/insmod /usr/local/nvidia/drivers/nvidia-uvm.ko; /sbin/insmod /usr/local/nvidia/drivers/nvidia-modeset.ko; /sbin/insmod /usr/local/nvidia/drivers/nvidia-drm.ko
+            /cos-gpu-installer install --version=latest --skip-nvidia-smi || exit 1
             chmod 755 /root/home/kubernetes/bin/nvidia
           fi
       - image: "gcr.io/gke-release/nvidia-partition-gpu@sha256:116be6b7335c1d34366223b9a3780fe80d862fcf06cd2c580426fdc1697af693"
