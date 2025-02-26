@@ -117,8 +117,9 @@ spec:
             exit 0
           else
             echo "No GPU driver module detected, installing now"
-            /cos-gpu-installer install --version=latest --skip-nvidia-smi || exit 1
+            /cos-gpu-installer install --skip-nvidia-smi || exit 1
             chmod 755 /root/home/kubernetes/bin/nvidia
+            /usr/local/nvidia/bin/nvidia-smi conf-compute -srs 1
           fi
       - image: "gcr.io/gke-release/nvidia-partition-gpu@sha256:116be6b7335c1d34366223b9a3780fe80d862fcf06cd2c580426fdc1697af693"
         name: partition-gpus
