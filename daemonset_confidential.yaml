@@ -1,4 +1,4 @@
-# Copyright 2022 Google Inc. All rights reserved.
+# Copyright 2017 Google Inc. All rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -73,8 +73,8 @@ spec:
         hostPath:
           path: /etc/nvidia
       initContainers:
-      - image: "us.gcr.io/gshuoy-dev/cos-gpu-installer:500"
-        imagePullPolicy: Always
+      - image: "cos-nvidia-installer:fixed"
+        imagePullPolicy: Never
         name: nvidia-driver-installer
         resources:
           requests:
@@ -82,20 +82,20 @@ spec:
         securityContext:
           privileged: true
         env:
-        - name: NVIDIA_INSTALL_DIR_HOST
-          value: /home/kubernetes/bin/nvidia
-        - name: NVIDIA_INSTALL_DIR_CONTAINER
-          value: /usr/local/nvidia
-        - name: VULKAN_ICD_DIR_HOST
-          value: /home/kubernetes/bin/nvidia/vulkan/i/cd.d
-        - name: VULKAN_ICD_DIR_CONTAINER
-          value: /etc/vulkan/icd.d
-        - name: ROOT_MOUNT_DIR
-          value: /root
-        - name: COS_TOOLS_DIR_HOST
-          value: /var/lib/cos-tools
-        - name: COS_TOOLS_DIR_CONTAINER
-          value: /build/cos-tools
+          - name: NVIDIA_INSTALL_DIR_HOST
+            value: /home/kubernetes/bin/nvidia
+          - name: NVIDIA_INSTALL_DIR_CONTAINER
+            value: /usr/local/nvidia
+          - name: VULKAN_ICD_DIR_HOST
+            value: /home/kubernetes/bin/nvidia/vulkan/icd.d
+          - name: VULKAN_ICD_DIR_CONTAINER
+            value: /etc/vulkan/icd.d
+          - name: ROOT_MOUNT_DIR
+            value: /root
+          - name: COS_TOOLS_DIR_HOST
+            value: /var/lib/cos-tools
+          - name: COS_TOOLS_DIR_CONTAINER
+            value: /build/cos-tools
         volumeMounts:
         - name: nvidia-install-dir-host
           mountPath: /usr/local/nvidia
@@ -117,7 +117,10 @@ spec:
             exit 0
           else
             echo "No GPU driver module detected, installing now"
-            /cos-gpu-installer install --skip-nvidia-smi || exit 1
+            /cos-gpu-installer install --no-verify || exit 1
+            sbin/modprobe -d /root drm_kms_helper; /sbin/insmod /usr/local/nvidia/drivers/nvidia.ko; sbin/insmod /usr/local/nvidia/drivers/nvidia-uvm.ko; /sbin/insmod /usr/local/nvidia/drivers/nvidia-modeset.ko; /sbin/insmod /usr/local/nvidia/drivers/nvidia-drm.ko
+            /usr/local/nvidia/bin/nvidia-modprobe -c0 -u -m
+            /usr/local/nvidia/bin/nvidia-ctk system create-dev-char-symlinks --create-all
             chmod 755 /root/home/kubernetes/bin/nvidia
             /usr/local/nvidia/bin/nvidia-smi conf-compute -srs 1
           fi
